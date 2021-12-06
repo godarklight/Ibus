@@ -7,9 +7,10 @@ namespace Ibus
     {
         private RingBuffer incomingBuffer = new RingBuffer();
         private bool syncronised = false;
-        private byte[] processBuffer = new byte[32];
         private byte[] sendBuffer = new byte[32];
-        private int processBufferPos = 0;
+        private byte[] processMessage = new byte[32];
+        private int processMessagePos = 0;
+        private int processMessageSize = 0;
         private Action<Message> messageEvent;
         private Func<int, ushort> sensorEvent;
         private IOInterface io;
@@ -27,15 +28,16 @@ namespace Ibus
 
             while (incomingBuffer.Available > 1)
             {
-                //Find header
+                //Syncronise the stream by finding a 0x2040 header
                 while (!syncronised && incomingBuffer.Available > 2)
                 {
                     if (incomingBuffer.ReadByte() == 0x20 && incomingBuffer.ReadByte() == 0x40)
                     {
                         syncronised = true;
-                        processBuffer[0] = 0x20;
-                        processBuffer[1] = 0x40;
-                        processBufferPos = 2;
+                        processMessage[0] = 0x20;
+                        processMessage[1] = 0x40;
+                        processMessagePos = 2;
+                        processMessageSize = processMessage[0];
                     }
                 }
 
@@ -45,130 +47,101 @@ namespace Ibus
                     return;
                 }
 
-                //We need to read the header
-                if (processBufferPos == 0)
+                //Read size
+                if (processMessagePos == 0 && incomingBuffer.Available > 0)
                 {
-                    if (!FillProcessBufferTo(2))
+                    incomingBuffer.Read(processMessage, processMessagePos, 1);
+                    processMessagePos += 1;
+                    processMessageSize = processMessage[0];
+                    //Maximum protocol length is 32 bytes, anything else must be a bit slip.
+                    if (processMessageSize > 32)
                     {
-                        return;
+                        syncronised = false;
+                        continue;
                     }
                 }
 
-                bool headerOk = false;
+                //Read message
+                if (incomingBuffer.Available >= processMessageSize)
+                {
+                    int bytesToRead = processMessageSize - processMessagePos;
+                    incomingBuffer.Read(processMessage, processMessagePos, bytesToRead);
+                    processMessagePos += bytesToRead;
+                }
+                else
+                {
+                    return;
+                }
+
+                //Check the message checksum
+                if (!Checksum(processMessage[0] - 2))
+                {
+                    syncronised = false;
+                    continue;
+                }
+
+                int messageType = processMessage[1] & 0xF0;
+                int sensorID = processMessage[1] & 0x0F;
+                bool handled = false;
+
                 //Channel message
-                if (processBuffer[0] == 0x20 && processBuffer[1] == 0x40)
+                if (messageType == 0x40)
                 {
-                    headerOk = true;
-                    if (!FillProcessBufferTo(32))
+                    handled = true;
+                    Message m = new Message();
+                    for (int i = 0; i < 14; i++)
                     {
-                        return;
+                        m.channelsRaw[i] = BitConverter.ToUInt16(processMessage, 2 + (i * 2));
+                        m.channels[i] = -1f + (m.channelsRaw[i] - 500) / 1000f;
                     }
-                    if (Checksum(30))
-                    {
-                        Message m = new Message();
-                        for (int i = 0; i < 14; i++)
-                        {
-                            m.channelsRaw[i] = BitConverter.ToUInt16(processBuffer, 2 + (i * 2));
-                            m.channels[i] = -1f + (m.channelsRaw[i] - 500) / 1000f;
-                        }
-                        messageEvent(m);
-                        processBufferPos = 0;
-                        continue;
-                    }
+                    messageEvent(m);
                 }
 
-                //Sensor discover
-                if (processBuffer[0] == 4 && (processBuffer[1] & 0xF0) == 0x80)
+                //Sensor discover? I have no idea. I *think* we are supposed to reply 0x90 sensor description messages.
+                if (messageType == 0x80)
                 {
-                    headerOk = true;
-                    if (!FillProcessBufferTo(4))
-                    {
-                        return;
-                    }
-                    if (Checksum(2))
-                    {
-                        int sensorID = processBuffer[1] & 0b00001111;
-                        if (sensorID < Program.SENSOR_DEVICES)
-                        {
-                            sendBuffer[0] = 0x4;
-                            sendBuffer[1] = processBuffer[1];
-                            SetSendChecksum(2);
-                            io.Write(sendBuffer, 4);
-                        }
-                        processBufferPos = 0;
-                        continue;
-                    }
+                    handled = true;
+                    Console.WriteLine($"TODO: {messageType.ToString("X2")}");
                 }
 
-                //Sensor description message
-                if (processBuffer[0] == 0x4 && (processBuffer[1] & 0xF0) == 0x90)
+                //Sensor description message. We send these I think, don't receive.
+                if (messageType == 0x90)
                 {
-                    headerOk = true;
-                    if (!FillProcessBufferTo(4))
-                    {
-                        return;
-                    }
-                    if (Checksum(2))
-                    {
-                        int sensorID = processBuffer[1] & 0b00001111;
-                        int returnValue = sensorEvent(sensorID);
-                        sendBuffer[0] = 0x6;
-                        sendBuffer[1] = processBuffer[1];
-                        //Type
-                        sendBuffer[2] = 0;
-                        //Size
-                        sendBuffer[3] = 2;
-                        SetSendChecksum(4);
-                        io.Write(sendBuffer, 6);
-                        processBufferPos = 0;
-                        continue;
-                    }
+                    handled = true;
+                    Console.WriteLine($"TODO: {messageType.ToString("X2")}");
                 }
 
-                //Sensor data message
-                if (processBuffer[0] == 0x4 && (processBuffer[1] & 0xF0) == 0xA0)
+                //Sensor data request
+                if (messageType == 0xA0)
                 {
-                    headerOk = true;
-                    if (!FillProcessBufferTo(4))
-                    {
-                        return;
-                    }
-                    if (Checksum(2))
-                    {
-                        int sensorID = processBuffer[1] & 0b00001111;
-                        sendBuffer[0] = 0x6;
-                        sendBuffer[1] = processBuffer[1];
-                        ushort sensorData = sensorEvent(sensorID);
-                        BitConverter.GetBytes(sensorData).CopyTo(sendBuffer, 2);
-                        SetSendChecksum(4);
-                        io.Write(sendBuffer, 6);
-                        processBufferPos = 0;
-                        continue;
-                    }
+                    handled = true;
+                    //This needs reworking to send both 2 byte and 4 byte sensor data
+                    sendBuffer[0] = 0x6;
+                    sendBuffer[1] = processMessage[1];
+                    //This event needs to be changed to some other class where you can configure sensors
+                    ushort sensorData = sensorEvent(sensorID);
+                    BitConverter.GetBytes(sensorData).CopyTo(sendBuffer, 2);
+                    SetSendChecksum(4);
+                    io.Write(sendBuffer, 6);
                 }
 
-                if (!headerOk)
+                //I really don't know what these are
+                if (messageType == 0xF0)
                 {
-                    Console.WriteLine($"Uknown header {processBuffer[0]},{processBuffer[1]}");
+                    handled = true;
+                    Console.WriteLine($"TODO: {messageType.ToString("X2")}");
+                }
+
+
+                if (!handled)
+                {
+                    Console.WriteLine($"Uknown message type {messageType.ToString("X2")}");
                     syncronised = false;
                 }
-            }
-        }
 
-        private bool FillProcessBufferTo(int position)
-        {
-            int bufferToRead = position - processBufferPos;
-            if (bufferToRead > incomingBuffer.Available)
-            {
-                bufferToRead = incomingBuffer.Available;
+                processMessagePos = 0;
+                processMessageSize = 0;
             }
-            if (bufferToRead == 0)
-            {
-                return false;
-            }
-            incomingBuffer.Read(processBuffer, processBufferPos, bufferToRead);
-            processBufferPos += bufferToRead;
-            return position == processBufferPos;
         }
 
         private bool Checksum(int positionOfChecksum)
@@ -176,13 +149,9 @@ namespace Ibus
             ushort compute = 0xFFFF;
             for (int i = 0; i < positionOfChecksum; i++)
             {
-                compute -= processBuffer[i];
+                compute -= processMessage[i];
             }
-            ushort messageChecksum = BitConverter.ToUInt16(processBuffer, positionOfChecksum);
-            if (compute != messageChecksum)
-            {
-                syncronised = false;
-            }
+            ushort messageChecksum = BitConverter.ToUInt16(processMessage, positionOfChecksum);
             return compute == messageChecksum;
         }
 
