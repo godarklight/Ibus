@@ -125,7 +125,7 @@ namespace Ibus
                 {
                     handled = true;
                     //If it's length 4 we know the other side has requested sensor info. Anything bigger is our response
-                    if (processMessageSize > 4 && sensors[sensorID] != null)
+                    if (processMessageSize == 4 && sensors[sensorID] != null)
                     {
                         Sensor s = sensors[sensorID];
                         sendBuffer[0] = 6;
@@ -142,7 +142,7 @@ namespace Ibus
                 {
                     handled = true;
                     //If it's length 4 we know the other side has requested sensor data. Anything bigger is our response
-                    if (processMessageSize > 4 && sensors[sensorID] != null)
+                    if (processMessageSize == 4 && sensors[sensorID] != null)
                     {
                         Sensor s = sensors[sensorID];
                         s.WriteValue(sensorID, sendBuffer);
