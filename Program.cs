@@ -15,6 +15,7 @@ namespace Ibus
         private static byte[] sendBuffer = new byte[64];
         public static void Main(string[] args)
         {
+            /*
             string[] serialPorts = SerialPort.GetPortNames();
             if (serialPorts.Length > 1 && args.Length != 1)
             {
@@ -34,6 +35,7 @@ namespace Ibus
             {
                 serialPortName = args[0];
             }
+            */
 
             //Set up sensors
             Sensor[] sensors = new Sensor[15];
@@ -85,7 +87,7 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            Console.WriteLine($"message {m.channels[0]}");
+            //Console.WriteLine($"message {m.channels[0]}");
         }
     }
 }

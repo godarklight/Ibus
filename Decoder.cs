@@ -108,8 +108,10 @@ namespace Ibus
                 {
                     handled = true;
                     long currentTime = DateTime.UtcNow.Ticks;
+                    Console.WriteLine($"DISCOVER {sensorID}");
                     if (currentTime > ignoreSensorUntil)
                     {
+                        Console.WriteLine($"DISCOVER {sensorID} SEND");
                         //Because these get echoed back onto the serial line we will see our own message and go into an infinite loop. Frames are 7ms to 5ms seems safe.
                         ignoreSensorUntil = currentTime + 5 * TimeSpan.TicksPerMillisecond;
                         //Echo message if we have the sensor
@@ -127,6 +129,7 @@ namespace Ibus
                     //If it's length 4 we know the other side has requested sensor info. Anything bigger is our response
                     if (processMessageSize == 4 && sensors[sensorID] != null)
                     {
+                        Console.WriteLine($"DESCRIBE {sensorID}");
                         Sensor s = sensors[sensorID];
                         sendBuffer[0] = 6;
                         sendBuffer[1] = (byte)(0x90 | sensorID);
@@ -144,6 +147,7 @@ namespace Ibus
                     //If it's length 4 we know the other side has requested sensor data. Anything bigger is our response
                     if (processMessageSize == 4 && sensors[sensorID] != null)
                     {
+                        Console.WriteLine($"SEND {sensorID}");
                         Sensor s = sensors[sensorID];
                         s.WriteValue(sensorID, sendBuffer);
                         SetSendChecksum(2 + s.length);
@@ -155,7 +159,7 @@ namespace Ibus
                 if (messageType == 0xF0)
                 {
                     handled = true;
-                    Console.WriteLine($"TODO: {messageType.ToString("X2")}");
+                    //Console.WriteLine($"TODO: {messageType.ToString("X2")}");
                 }
 
 

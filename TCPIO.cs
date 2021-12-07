@@ -14,6 +14,7 @@ namespace Ibus
         public TCPIO(int port)
         {
             listener = new TcpListener(new IPEndPoint(IPAddress.IPv6Any, port));
+            listener.Server.DualMode = true;
             listener.Start();
             listener.BeginAcceptTcpClient(TCPConnect, null);
         }
