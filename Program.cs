@@ -10,7 +10,7 @@ namespace Ibus
 {
     class Program
     {
-        public const int SENSOR_DEVICES = 5;
+        private static long startupTime = DateTime.UtcNow.Ticks;
         private static IOInterface io;
         private static byte[] sendBuffer = new byte[64];
         public static void Main(string[] args)
@@ -35,10 +35,15 @@ namespace Ibus
                 serialPortName = args[0];
             }
 
+            //Set up sensors
+            Sensor[] sensors = new Sensor[15];
+            sensors[1] = new Sensor(SensorType.CELL, () => { return 3600; });
+            sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
+
             //Swap to switch to serial
             //io = new SerialIO(serialPortName);
             io = new FileIO();
-            Decoder decoder = new Decoder(MessageEvent, SensorEvent, io);
+            Decoder decoder = new Decoder(MessageEvent, sensors, io);
 
             bool running = true;
             byte[] buffer = new byte[64];
@@ -70,19 +75,11 @@ namespace Ibus
             }
         }
 
-        //TODO: Fill in stuff here
-        private static ushort SensorEvent(int id)
+        
+        private static int GetAltitude()
         {
-            switch (id)
-            {
-                case 0:
-                    return 100;
-                case 1:
-                    return 200;
-                case 3:
-                    return 300;
-            }
-            return 0;
+            long currentTime = DateTime.UtcNow.Ticks;
+            return (int)((currentTime - startupTime) / TimeSpan.TicksPerSecond);
         }
 
         private static void MessageEvent(Message m)
