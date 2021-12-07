@@ -8,5 +8,9 @@
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="../net45/**/*.cs" />
+  </ItemGroup>
 
 </Project>

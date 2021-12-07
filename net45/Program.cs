@@ -43,9 +43,9 @@ namespace Ibus
             //sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
 
             //Swap to switch to serial
-            //io = new SerialIO(serialPortName);
+            io = new SerialIO("/dev/ttyUSB0");
             //io = new FileIO();
-            io = new TCPIO(5867);
+            //io = new TCPIO(5867);
             Decoder decoder = new Decoder(MessageEvent, sensors, io);
 
             bool running = true;
