@@ -98,7 +98,7 @@ namespace Ibus
                     for (int i = 0; i < 14; i++)
                     {
                         m.channelsRaw[i] = BitConverter.ToUInt16(processMessage, 2 + (i * 2));
-                        m.channels[i] = -1f + (m.channelsRaw[i] - 500) / 1000f;
+                        m.channels[i] = -1f + (m.channelsRaw[i] - 500) / 500f;
                     }
                     messageEvent(m);
                 }

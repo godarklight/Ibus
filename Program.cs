@@ -39,8 +39,8 @@ namespace Ibus
 
             //Set up sensors
             Sensor[] sensors = new Sensor[15];
-            sensors[1] = new Sensor(SensorType.CELL, () => { return 3600; });
-            sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
+            sensors[1] = new Sensor(SensorType.CELL, GetVoltage);
+            //sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
 
             //Swap to switch to serial
             //io = new SerialIO(serialPortName);
@@ -78,7 +78,13 @@ namespace Ibus
             }
         }
 
-        
+        private static int GetVoltage()
+        {
+            long currentTime = DateTime.UtcNow.Ticks;
+            int retVal = (int)((currentTime - startupTime) / TimeSpan.TicksPerSecond) % 100;
+            return 300 + retVal;
+        }
+
         private static int GetAltitude()
         {
             long currentTime = DateTime.UtcNow.Ticks;
