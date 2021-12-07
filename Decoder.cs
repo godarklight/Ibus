@@ -53,6 +53,11 @@ namespace Ibus
                     incomingBuffer.Read(processMessage, processMessagePos, 1);
                     processMessagePos += 1;
                     processMessageSize = processMessage[0];
+                    if (processMessageSize < 4)
+                    {
+                        syncronised = false;
+                        continue;
+                    }
                     //Maximum protocol length is 32 bytes, anything else must be a bit slip.
                     if (processMessageSize > 32)
                     {

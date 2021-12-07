@@ -72,6 +72,7 @@ namespace Ibus
             if (secondRead > 0)
             {
                 Array.Copy(buffer, readPos, dest, firstRead + offset, secondRead);
+                readPos += secondRead;
             }
         }
 
