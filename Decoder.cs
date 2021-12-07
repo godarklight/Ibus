@@ -14,7 +14,7 @@ namespace Ibus
         private Action<Message> messageEvent;
         private Sensor[] sensors;
         private IOInterface io;
-        private long ignoreSensorUntil;
+        private long[] ignoreSensorUntil = new long[15];
 
         public Decoder(Action<Message> messageEvent, Sensor[] sensors, IOInterface io)
         {
@@ -109,11 +109,11 @@ namespace Ibus
                     handled = true;
                     long currentTime = DateTime.UtcNow.Ticks;
                     Console.WriteLine($"DISCOVER {sensorID}");
-                    if (currentTime > ignoreSensorUntil)
+                    if (currentTime > ignoreSensorUntil[sensorID])
                     {
                         Console.WriteLine($"DISCOVER {sensorID} SEND");
                         //Because these get echoed back onto the serial line we will see our own message and go into an infinite loop. Frames are 7ms to 5ms seems safe.
-                        ignoreSensorUntil = currentTime + 5 * TimeSpan.TicksPerMillisecond;
+                        ignoreSensorUntil[sensorID] = currentTime + 5 * TimeSpan.TicksPerMillisecond;
                         //Echo message if we have the sensor
                         if (sensors[sensorID] != null)
                         {

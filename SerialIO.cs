@@ -12,6 +12,7 @@ namespace Ibus
         public SerialIO(string serialPortName)
         {
             sp = new SerialPort(serialPortName, 115200, Parity.None, 8, StopBits.One);
+	        sp.Open();
         }
 
         public int Available()
