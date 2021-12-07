@@ -42,7 +42,8 @@ namespace Ibus
 
             //Swap to switch to serial
             //io = new SerialIO(serialPortName);
-            io = new FileIO();
+            //io = new FileIO();
+            io = new TCPIO(5867);
             Decoder decoder = new Decoder(MessageEvent, sensors, io);
 
             bool running = true;
@@ -70,7 +71,7 @@ namespace Ibus
                 }
                 if (bytesAvailable < buffer.Length)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(1);
                 }
             }
         }
