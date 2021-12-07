@@ -27,7 +27,7 @@ namespace Ibus
 
         public int WriteValue(int id, byte[] buffer)
         {
-            buffer[0] = 4 + (byte)length;
+            buffer[0] = (byte)(4 + length);
             buffer[1] = (byte)(0xA0 | id);
             if (sensorValueType == typeof(short))
             {
