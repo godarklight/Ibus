@@ -10,7 +10,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Include="../net45/**/*.cs" />
+    <Compile Include="../net45/**/*.cs" Exclude="../net45/bin/**;../net45/obj/**" />
   </ItemGroup>
 
 </Project>
