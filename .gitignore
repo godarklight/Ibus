@@ -4,3 +4,4 @@ bin
 *.user
 input.txt
 output.txt
+debug.txt
