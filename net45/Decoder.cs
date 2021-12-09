@@ -46,6 +46,10 @@ namespace Ibus
                         processMessagePos = 2;
                         syncronised = true;
                     }
+                    else
+                    {
+                        processMessagePos = 0;
+                    }
                 }
 
                 //We can't continue unless syncronised
