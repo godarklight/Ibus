@@ -15,45 +15,23 @@ namespace Ibus
         private static byte[] sendBuffer = new byte[64];
         public static void Main(string[] args)
         {
-            /*
-            string[] serialPorts = SerialPort.GetPortNames();
-            if (serialPorts.Length > 1 && args.Length != 1)
-            {
-                Console.WriteLine("Please specify which serial port to use with the program arguments:");
-                foreach (string validPort in serialPorts)
-                {
-                    Console.WriteLine(validPort);
-                }
-                return;
-            }
-            string serialPortName;
-            if (serialPorts.Length > 0)
-            {
-                serialPortName = serialPorts[0];
-            }
-            if (args.Length > 0)
-            {
-                serialPortName = args[0];
-            }
-            */
+            SetupIO(args);
 
             //Set up sensors
             Sensor[] sensors = new Sensor[15];
             sensors[1] = new Sensor(SensorType.CELL, GetVoltage);
-            //sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
+            sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
 
-            //Swap to switch to serial
-            io = new SerialIO("/dev/ttyUSB0");
-            //io = new FileIO();
-            //io = new TCPIO(5867);
-            Decoder decoder = new Decoder(MessageEvent, sensors, io);
+            Sender sender = new Sender(io);
+            Handler handler = new Handler(MessageEvent, sensors, sender);
+            Decoder decoder = new Decoder(handler);
 
             bool running = true;
             byte[] buffer = new byte[64];
             while (running)
             {
-                int bytesAvailable = io.Available();
-                if (bytesAvailable > 0)
+                int bytesAvailable = 0;
+                while ((bytesAvailable = io.Available()) > 0)
                 {
                     int bytesRead = bytesAvailable;
                     if (bytesRead > buffer.Length)
@@ -63,18 +41,12 @@ namespace Ibus
                     io.Read(buffer, bytesRead);
                     decoder.Decode(buffer, bytesRead);
                 }
-                else
+                //FileIO has run out of data, quit.
+                if (io is FileIO)
                 {
-                    //Debugging
-                    if (io is FileIO)
-                    {
-                        running = false;
-                    }
+                    running = false;
                 }
-                if (bytesAvailable < buffer.Length)
-                {
-                    Thread.Sleep(1);
-                }
+                Thread.Sleep(1);
             }
         }
 
@@ -94,6 +66,48 @@ namespace Ibus
         private static void MessageEvent(Message m)
         {
             //Console.WriteLine($"message {m.channels[0]}");
+        }
+
+        private static void SetupIO(string[] args)
+        {
+            if (args.Length > 0)
+            {
+                if (args[0] == "file")
+                {
+                    io = new FileIO();
+                }
+                if (args[0] == "tcp")
+                {
+                    io = new TCPIO(5867);
+                }
+                if (args[0] == "serial")
+                {
+                    if (args.Length > 1)
+                    {
+                        io = new SerialIO(args[1]);
+                    }
+                    else
+                    {
+                        string[] serialPorts = SerialPort.GetPortNames();
+                        if (serialPorts.Length == 1)
+                        {
+                            io = new SerialIO(serialPorts[0]);
+                        }
+                        else
+                        {
+                            foreach (string port in serialPorts)
+                            {
+                                Console.WriteLine($"Available serial ports: {port}");
+                            }
+                        }
+                    }
+                }
+
+            }
+            if (io == null)
+            {
+                io = new SerialIO("/dev/ttyUSB0");
+            }
         }
     }
 }

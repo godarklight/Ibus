@@ -4,10 +4,11 @@ namespace Ibus
 {
     public class Sensor
     {
-        public SensorType type;
-        public int length;
-        public Type sensorValueType;
-        public Func<int> inputValue;
+        public readonly SensorType type;
+        public readonly int length;
+        private readonly Type sensorValueType;
+        private readonly Func<int> inputValue;
+
         public Sensor(SensorType type, Func<int> inputValue)
         {
             this.type = type;

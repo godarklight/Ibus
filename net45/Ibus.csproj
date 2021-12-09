@@ -41,6 +41,8 @@
     <Compile Include="SensorValueType.cs" />
     <Compile Include="SerialIO.cs" />
     <Compile Include="TCPIO.cs" />
+    <Compile Include="Handler.cs" />
+    <Compile Include="Sender.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

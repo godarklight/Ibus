@@ -28,6 +28,7 @@ namespace Ibus
         {
             sp.Read(buffer, 0, length);
             fs.Write(buffer, 0, length);
+            fs.Flush();
         }
 
         public void Write(byte[] buffer, int length)
