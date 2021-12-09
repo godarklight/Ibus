@@ -5,14 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Serial",
+            "name": "SerialIO",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/net5/bin/Debug/net5.0/Ibus.dll",
-            "args": ["serial"],
+            "args": [
+                "serial"
+            ],
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
+            "console": "internalConsole",
             "stopAtEntry": false
         },
         {
@@ -25,7 +27,7 @@
                 "tcp"
             ],
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
+            "console": "internalConsole",
             "stopAtEntry": false
         },
         {
@@ -38,7 +40,20 @@
                 "file"
             ],
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "UDPIO",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/net5/bin/Debug/net5.0/Ibus.dll",
+            "args": [
+                "udp"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
             "stopAtEntry": false
         },
     ]

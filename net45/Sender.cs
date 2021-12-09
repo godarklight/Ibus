@@ -36,8 +36,8 @@ namespace Ibus
         {
             Console.WriteLine($"TX DATA {sensorID}");
             int length = sensor.WriteValue(sensorID, sendBuffer);
-            SetSendChecksum(2 + length);
-            io.Write(sendBuffer, 4 + length);
+            SetSendChecksum(length - 2);
+            io.Write(sendBuffer, length);
         }
 
 

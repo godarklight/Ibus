@@ -9,7 +9,7 @@ namespace Ibus
         private Action<Message> channelsEvent;
         private Sensor[] sensors;
         private Sender sender;
-        private bool[] ignoreSensor = new bool[15];
+        private bool[] ignoreSensor = new bool[16];
 
         public Handler(Action<Message> channelsEvent, Sensor[] sensors, Sender sender)
         {

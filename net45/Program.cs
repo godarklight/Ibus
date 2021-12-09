@@ -18,7 +18,7 @@ namespace Ibus
             SetupIO(args);
 
             //Set up sensors
-            Sensor[] sensors = new Sensor[15];
+            Sensor[] sensors = new Sensor[16];
             sensors[1] = new Sensor(SensorType.CELL, GetVoltage);
             sensors[2] = new Sensor(SensorType.ALT, GetAltitude);
 
@@ -102,7 +102,10 @@ namespace Ibus
                         }
                     }
                 }
-
+                if (args[0] == "udp")
+                {
+                    io = new UDPIO(5687);
+                }
             }
             if (io == null)
             {

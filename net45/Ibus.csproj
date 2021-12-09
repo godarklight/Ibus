@@ -42,6 +42,7 @@
     <Compile Include="TCPIO.cs" />
     <Compile Include="Handler.cs" />
     <Compile Include="Sender.cs" />
+    <Compile Include="UDPIO.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
