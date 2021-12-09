@@ -42,7 +42,7 @@ namespace Ibus
             {
                 BitConverter.GetBytes(inputValue()).CopyTo(buffer, 2);
             }
-            return 0;
+            return 4 + length;
         }
     }
 }
