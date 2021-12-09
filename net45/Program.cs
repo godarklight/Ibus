@@ -65,7 +65,7 @@ namespace Ibus
 
         private static void MessageEvent(Message m)
         {
-            //Console.WriteLine($"message {m.channels[0]}");
+            Console.WriteLine($"message {m.channels[0]}");
         }
 
         private static void SetupIO(string[] args)

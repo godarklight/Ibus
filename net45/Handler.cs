@@ -16,6 +16,7 @@ namespace Ibus
             this.sensors = sensors;
             this.channelsEvent = channelsEvent;
             this.sender = sender;
+            handlers.Add(0x40, HandleChannels);
             handlers.Add(0x80, HandleSensorDiscover);
             handlers.Add(0x90, HandleSensorDescribe);
             handlers.Add(0xA0, HandleSensorData);
@@ -28,11 +29,12 @@ namespace Ibus
             int sensorID = message[1] & 0x0F;
             if (handlers.ContainsKey(messageType))
             {
+                Console.WriteLine($"RX {messageType.ToString("X2")} sensor {sensorID}");
                 handlers[messageType](sensorID, message);
             }
             else
             {
-                Console.WriteLine($"Unknown message type: {messageType.ToString("X2")}");
+                Console.WriteLine($"RX UNKNOWN {messageType.ToString("X2")} sensor {sensorID}");
             }
         }
 

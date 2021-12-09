@@ -13,7 +13,6 @@ namespace Ibus
 {
     public class Decoder
     {
-        private RingBuffer incomingBuffer = new RingBuffer();
         private bool syncronised = false;
         private byte[] processMessage = new byte[32];
         private int processMessagePos = 0;
@@ -26,24 +25,31 @@ namespace Ibus
 
         public void Decode(byte[] bytes, int length)
         {
-            incomingBuffer.Write(bytes, 0, length);
+            int incomingReadLeft = length;
+            int incomingReadPos = 0;
 
-            while (incomingBuffer.Available > 1)
+            while (incomingReadLeft > 0)
             {
                 //Syncronise the stream by finding a 0x2040 header
-                while (!syncronised && incomingBuffer.Available > 2)
+                while (!syncronised && incomingReadLeft > 0)
                 {
-                    if (incomingBuffer.ReadByte() == 0x20 && incomingBuffer.ReadByte() == 0x40)
+                    processMessage[processMessagePos] = bytes[incomingReadPos];
+                    incomingReadPos++;
+                    incomingReadLeft--;
+                    if (processMessagePos == 0 && processMessage[0] == 0x20)
                     {
-                        syncronised = true;
-                        processMessage[0] = 0x20;
-                        processMessage[1] = 0x40;
+                        processMessagePos = 1;
+                        continue;
+                    }
+                    if (processMessagePos == 1 && processMessage[1] == 0x40)
+                    {
                         processMessagePos = 2;
+                        syncronised = true;
                     }
                 }
 
-                //We can't continue unless syncronised, wait for more buffer. Need at least 1 byte to read the size or part of a message.
-                if (!syncronised || incomingBuffer.Available == 0)
+                //We can't continue unless syncronised
+                if (!syncronised)
                 {
                     return;
                 }
@@ -51,32 +57,38 @@ namespace Ibus
                 //Read size
                 if (processMessagePos == 0)
                 {
-                    incomingBuffer.Read(processMessage, processMessagePos, 1);
-                    processMessagePos += 1;
+                    processMessage[processMessagePos] = bytes[incomingReadPos];
+                    incomingReadPos++;
+                    incomingReadLeft--;
+                    processMessagePos = 1;
                     //All messages must be at least 4 bytes, 1 length, 1 messagetype/sensorID, 2 checksum.
                     if (processMessage[0] < 4)
                     {
+                        processMessagePos = 0;
                         syncronised = false;
                         continue;
                     }
                     //Channel messages are the biggest message at 32 bytes each, it's safe to assume the stream has desyncronised here.
                     if (processMessage[0] > 32)
                     {
+                        processMessagePos = 0;
                         syncronised = false;
                         continue;
                     }
                 }
 
                 //Read message
-                if (incomingBuffer.Available > 0)
+                if (incomingReadLeft > 0)
                 {
                     int bytesToRead = processMessage[0] - processMessagePos;
-                    if (bytesToRead > incomingBuffer.Available)
+                    if (bytesToRead > incomingReadLeft)
                     {
-                        bytesToRead = incomingBuffer.Available;
+                        bytesToRead = incomingReadLeft;
                     }
-                    incomingBuffer.Read(processMessage, processMessagePos, bytesToRead);
+                    Array.Copy(bytes, incomingReadPos, processMessage, processMessagePos, bytesToRead);
                     processMessagePos += bytesToRead;
+                    incomingReadPos += bytesToRead;
+                    incomingReadLeft -= bytesToRead;
                 }
 
                 //Message not yet fully received, wait.
@@ -88,6 +100,7 @@ namespace Ibus
                 //Check the message checksum
                 if (!Checksum(processMessage[0] - 2))
                 {
+                    processMessagePos = 0;
                     syncronised = false;
                     continue;
                 }
