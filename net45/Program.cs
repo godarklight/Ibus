@@ -60,7 +60,7 @@ namespace Ibus
         private static int GetAltitude()
         {
             long currentTime = DateTime.UtcNow.Ticks;
-            return (int)((currentTime - startupTime) / TimeSpan.TicksPerSecond);
+            return (int)((currentTime - startupTime) / TimeSpan.TicksPerSecond) * 100;
         }
 
         private static void MessageEvent(Message m)
