@@ -3,6 +3,8 @@
 
 using System.IO;
 using System.IO.Ports;
+using System.Net;
+using System.Net.Sockets;
 
 namespace Ibus
 {
@@ -10,6 +12,8 @@ namespace Ibus
     {
         SerialPort sp;
         FileStream fs;
+        UdpClient udp;
+        IPEndPoint endpoint;
 
         public SerialIO(string serialPortName)
         {
@@ -17,6 +21,15 @@ namespace Ibus
             sp.Open();
             File.Delete("debug.txt");
             fs = new FileStream("debug.txt", FileMode.Create);
+            udp = new UdpClient(AddressFamily.InterNetworkV6);
+            IPAddress[] addrs = Dns.GetHostAddresses("chrislinux.godarklight.privatedns.org");
+            foreach (IPAddress addr in addrs)
+            {
+                if (addr.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    endpoint = new IPEndPoint(addr, 5687);
+                }
+            }
         }
 
         public int Available()
@@ -29,6 +42,7 @@ namespace Ibus
             sp.Read(buffer, 0, length);
             fs.Write(buffer, 0, length);
             fs.Flush();
+            udp.Send(buffer, length, endpoint);
         }
 
         public void Write(byte[] buffer, int length)
