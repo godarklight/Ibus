@@ -14,7 +14,7 @@ namespace Ibus
     public class Decoder
     {
         private bool syncronised = false;
-        private byte[] processMessage = new byte[32];
+        private byte[] processMessage = new byte[64];
         private int processMessagePos = 0;
         private Handler handler;
 
@@ -72,8 +72,8 @@ namespace Ibus
                         syncronised = false;
                         continue;
                     }
-                    //Channel messages are the biggest message at 32 bytes each, it's safe to assume the stream has desyncronised here.
-                    if (processMessage[0] > 32)
+                    //Any message bigger than the processMessage buffer is an error.
+                    if (processMessage[0] > processMessage.Length)
                     {
                         processMessagePos = 0;
                         syncronised = false;

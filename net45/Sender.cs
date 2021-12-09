@@ -14,7 +14,6 @@ namespace Ibus
 
         public void SendDiscover(int sensorID)
         {
-            Console.WriteLine($"TX DISCOVER {sensorID}");
             sendBuffer[0] = 4;
             sendBuffer[1] = (byte)(0x80 | sensorID);
             SetSendChecksum(2);
@@ -23,7 +22,6 @@ namespace Ibus
 
         public void SendSensorDescribe(int sensorID, Sensor sensor)
         {
-            Console.WriteLine($"TX DESCRIBE {sensorID}");
             sendBuffer[0] = 6;
             sendBuffer[1] = (byte)(0x90 | sensorID);
             sendBuffer[2] = (byte)sensor.type;
@@ -34,7 +32,6 @@ namespace Ibus
 
         public void SendSensorData(int sensorID, Sensor sensor)
         {
-            Console.WriteLine($"TX DATA {sensorID}");
             int length = sensor.WriteValue(sensorID, sendBuffer);
             SetSendChecksum(length - 2);
             io.Write(sendBuffer, length);

@@ -50,13 +50,7 @@ namespace Ibus
             {
                 if (endpoint != null)
                 {
-                    Console.Write("UDP TX: ");
-                    for (int i = 0; i < length; i++)
-                    {
-                        Console.Write(buffer[i].ToString("X2"));
-                    }
-                    Console.WriteLine();
-                    //udp.Send(buffer, length, endpoint);
+                    udp.Send(buffer, length, endpoint);
                 }
             }
             catch

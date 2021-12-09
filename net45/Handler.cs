@@ -29,7 +29,6 @@ namespace Ibus
             int sensorID = message[1] & 0x0F;
             if (handlers.ContainsKey(messageType))
             {
-                Console.WriteLine($"RX {messageType.ToString("X2")} sensor {sensorID}");
                 handlers[messageType](sensorID, message);
             }
             else

@@ -49,5 +49,6 @@ namespace Ibus
         ALT_MAX = 0x84, //int32 MaxAlt m*100
 
         ALT_FLYSKY = 0xf9, // Altitude short in m
+        UNKNOWN = 0xff
     }
 }
