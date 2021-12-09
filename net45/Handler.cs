@@ -43,7 +43,7 @@ namespace Ibus
             for (int i = 0; i < 14; i++)
             {
                 m.channelsRaw[i] = BitConverter.ToUInt16(data, 2 + (i * 2));
-                m.channels[i] = -1f + (m.channelsRaw[i] - 500) / 500f;
+                m.channels[i] = (m.channelsRaw[i] - 1500) / 500f;
             }
             if (channelsEvent != null)
             {
