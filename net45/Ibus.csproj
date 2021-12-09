@@ -35,7 +35,6 @@
     <Compile Include="IOInterface.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="RingBuffer.cs" />
     <Compile Include="Sensor.cs" />
     <Compile Include="SensorType.cs" />
     <Compile Include="SensorValueType.cs" />
